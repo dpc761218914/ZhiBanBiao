@@ -16,53 +16,84 @@
     <p style="text-align: center;font-size: 50px">值日安排</p></div></br>
     <p style="font-size: 15px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;值日内容：1.打开水。2.拖地。3.给花草浇水。</p>
     <p style="font-size: 15px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;值日要求：第1、2项为必须项，没有特殊情况，打开水早上9点前完成。</p>
-    </br>
-    <div class="layui-form">
-        <table class="layui-table">
-            <thead>
-            <tr>
-                <th style="text-align: center"><strong>序号</strong></th>
-                <th style="text-align: center"><strong>日期</strong></th>
-                <th style="text-align: center"><strong>星期</strong></th>
-                <th style="text-align: center"><strong>值班人</strong></th>
-            </tr>
-            </thead>
-            <tbody id="tabContent" style="text-align: center">
-            </tbody>
-        </table>
+</br>
+<div class="layui-form">
+    <table class="layui-table">
+        <thead>
+        <tr>
+            <th style="text-align: center"><strong>序号</strong></th>
+            <th style="text-align: center"><strong>日期</strong></th>
+            <th style="text-align: center"><strong>星期</strong></th>
+            <th style="text-align: center"><strong>值班人</strong></th>
+        </tr>
+        </thead>
+        <tbody id="tabContent" style="text-align: center">
+        </tbody>
+    </table>
+</div>
+<div style="text-align: right">
+    <div class="layui-inline">
+        <label class="layui-form-label">已过天数</label>
+        <div class="layui-input-inline">
+            <input type="text" style="width: 50px" id="fromDate" value="0" class="layui-input">
+        </div>
     </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">工作日天数</label>
+        <div class="layui-input-inline">
+            <input type="text" style="width: 50px" id="workdays" value="20" class="layui-input">
+        </div>
+        <button class="layui-btn layui-btn-primary"  id="find" lay-filter="demo1">查询</button>
+    </div>
+</div>
 </div>
 
 <script type="text/javascript" src="src/layui.js"></script>
 
 <script>
-   layui.use(['layer'], function() {
+    layui.use(['layer'], function() {
         var $ = layui.jquery,
                 layer = parent.layer === undefined ? layui.layer : parent.layer;
         //页面初始化的时候执行
         $(function (){
-            getData();
+            var fromDate=$('#fromDate').val();
+            var workdays=$('#workdays').val();
+            getData(fromDate,workdays);
         });
+
+        $('#find').on('click', function() {
+            var fromDate=$('#fromDate').val();
+            var workdays=$('#workdays').val();
+            getData(fromDate,workdays);
+        });
+
+        /*给Enter按钮添加点击事件*/
+        $("body").keydown(function () {
+            if (event.keyCode == "13") {//keyCode=13是回车键
+                $("#find").click();
+            }
+        });
+
         //从后台获取数据函数，获取页数curr的数据
-        function getData(){
-            $.get("/users",function(result){
-                    layer.msg(result.toString());
-                    //拼接html内容
-                    var tabContentStr="";
-                    //获取后台json数据
-                    var mydata=result.datas;
-                    layer.msg("20条值班数据加载成功~~~");
-                    for(var i=0;i<mydata.length;i++) {
-                        var tempStr = '<tr id=' + mydata[i]._id + '>' +
-                                '<td>' + (i + 1) + '</td>' +
-                                '<td>' + mydata[i][0] + '</td>' +
-                                '<td>' + mydata[i][1] + '</td>' +
-                                '<td>' + mydata[i][2] + '</td>' +
-                                '</tr>';
-                        tabContentStr = tabContentStr + tempStr;
-                    }
-                        //将拼接好的数据填入#tabContent中
-                        $("#tabContent").html(tabContentStr);
+        function getData(fromDate,workdays){
+            $.post("/users",{fromDate:fromDate,workdays:workdays},function(result){
+                layer.msg(result.toString());
+                //拼接html内容
+                var tabContentStr="";
+                //获取后台json数据
+                var mydata=result.datas;
+                layer.msg("祝贺你，值班数据加载成功啦！");
+                for(var i=0;i<mydata.length;i++) {
+                    var tempStr = '<tr id=' + mydata[i]._id + '>' +
+                            '<td>' + (i + 1) + '</td>' +
+                            '<td>' + mydata[i][0] + '</td>' +
+                            '<td>' + mydata[i][1] + '</td>' +
+                            '<td>' + mydata[i][2] + '</td>' +
+                            '</tr>';
+                    tabContentStr = tabContentStr + tempStr;
+                }
+                //将拼接好的数据填入#tabContent中
+                $("#tabContent").html(tabContentStr);
             });
         };
     });

@@ -35,17 +35,26 @@ var holidays=["2017-09-02","2017-09-03","2017-09-09","2017-09-10","2017-09-16","
 
 var peoples=["胡八一","徐大大","邓小平","冯玉祥","戴望舒","周杰伦","万科","徐宁宁","匡小芬","陈龙"];
 
-app.get('/users', function(req,rep){
+app.post('/users', function(req,rep){
   //当前时间
+  //fromDate已经过了多少天，例如周二上班，需要从周一开始打印。
+  var fromDate=req.body.fromDate;
+  //需要工作的天数，可以控制打印记录的数量
+  var workdays=req.body.workdays;
+  //有周末需要往后顺延，周末由戴鹏程值班
+  var delayDay=0;
   //var now =moment().format("YYYY-MM-DD");
   var items=[];
-  for(var i=items.length;items.length<20;i++){
+  for(var i=items.length;items.length<workdays;i++){
     //从当前日期查询往后的日子
-    nextDay=moment().subtract(-i, "days").format("YYYY-MM-DD");
+    nextDay=moment().subtract(fromDate-i, "days").format("YYYY-MM-DD");
     if(!contains(holidays,nextDay)){
       //判断日期是星期几
       var weekNum=moment(nextDay).format("E");
       var weekStr=""
+      var peopleNum=(items.length-delayDay)%10;
+      var peopleName=peoples[peopleNum];
+      //如果碰到节假日之工作日，就安排自己值班,这样可以不打乱大家值班的顺序。
       if(weekNum=="1"){
         weekStr="星期一"
       }else if(weekNum=="2"){
@@ -58,12 +67,13 @@ app.get('/users', function(req,rep){
         weekStr="星期五"
       }else if(weekNum=="6"){
         weekStr="星期六"
+        peopleName="戴鹏程"
+        delayDay=delayDay+1;
       }else if(weekNum=="7"){
         weekStr="星期天"
+        peopleName="戴鹏程"
+        delayDay=delayDay+1;
       }
-      //刚好人数为10，所有模10就可循环输出人名
-      var peopleNum=items.length%10;
-      var peopleName=peoples[peopleNum];
       items.push([nextDay,weekStr,peopleName]);
     }
   }
